@@ -22,17 +22,17 @@ fn main() -> Result<(), eframe::Error> {
 }
 
 struct MyApp {
-    name: String,
-    age: u32,
+    search: String,
     picked_path: String,
+    output: String,
 }
 
 impl Default for MyApp {
     fn default() -> Self {
         Self {
-            name: "Arthur".to_owned(),
-            age: 42,
-            picked_path: "test".to_owned(),
+            search: "lorem".to_owned(),
+            picked_path: "/home/example".to_owned(),
+            output: "test".to_owned(),
         }
     }
 }
@@ -40,26 +40,31 @@ impl Default for MyApp {
 impl eframe::App for MyApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         egui::CentralPanel::default().show(ctx, |ui| {
-            ui.vertical_centered(|ui| {
-                ui.heading("PDF Suche");
-            });
+            ui.heading("PDF Suche");
+
             ui.horizontal(|ui| {
                 let name_label = ui.label("Suche nach: ");
-                ui.text_edit_singleline(&mut self.name)
+                ui.text_edit_singleline(&mut self.search)
                     .labelled_by(name_label.id);
             });
-            if ui.button("Im Ordner").clicked() {
-                if let Some(path) = rfd::FileDialog::new().pick_folder() {
-                    self.picked_path = path.display().to_string();
+
+            ui.horizontal(|ui| {
+                let _folder_label = ui.label("PDF Ordner: ");
+                if ui.button("Auswählen").clicked() {
+                    if let Some(path) = rfd::FileDialog::new().pick_folder() {
+                        self.picked_path = path.display().to_string();
+                    }
                 }
-            }
-            ui.add(egui::Slider::new(&mut self.age, 0..=120).text("age"));
-            if ui.button("Increment").clicked() {
-                self.age += 1;
-            }
+            });
+
             ui.label(format!(
-                "Hello '{}', age {}, path: {}",
-                self.name, self.age, self.picked_path
+                "Suche nach '{}', im Ordner: {}",
+                self.search, self.picked_path
+            ));
+
+            ui.label(format!(
+                "{}",
+                search_pdf(self.picked_path.clone(), self.search.clone())
             ));
         });
     }
