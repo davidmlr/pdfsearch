@@ -1,7 +1,7 @@
 mod search;
 use crate::search::search_pdf;
-
 use eframe::egui;
+use serde::{Deserialize, Serialize};
 
 fn main() -> Result<(), eframe::Error> {
     env_logger::init(); // Log to stderr (if you run with `RUST_LOG=debug`).
@@ -12,33 +12,29 @@ fn main() -> Result<(), eframe::Error> {
     eframe::run_native(
         "pdf folder search",
         options,
-        Box::new(|cc| {
-            // This gives us image support:
-            egui_extras::install_image_loaders(&cc.egui_ctx);
-
-            Box::<MyApp>::default()
+        Box::new(|c| {
+            Box::new(
+                c.storage
+                    .and_then(|s| eframe::get_value::<MyApp>(s, eframe::APP_KEY))
+                    .unwrap_or_default(),
+            )
         }),
     )
 }
-
+#[derive(Default, Serialize, Deserialize)]
 struct MyApp {
     search: String,
     picked_path: String,
     output: String,
 }
 
-impl Default for MyApp {
-    fn default() -> Self {
-        Self {
-            search: "lorem".to_owned(),
-            picked_path: "/home/example".to_owned(),
-            output: "test".to_owned(),
-        }
-    }
-}
-
 impl eframe::App for MyApp {
+    fn save(&mut self, storage: &mut dyn eframe::Storage) {
+        eframe::set_value(storage, eframe::APP_KEY, self);
+    }
+
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+        ctx.set_pixels_per_point(2.0);
         egui::CentralPanel::default().show(ctx, |ui| {
             ui.heading("PDF Suche");
 
